@@ -155,6 +155,7 @@ main{min-height:100vh}
 .fact .num{font-family:var(--serif);color:var(--green);font-size:clamp(34px,4vw,52px);line-height:1}
 .fact .mono{display:block;margin-bottom:8px;font-size:10.5px;letter-spacing:.14em}
 .fact p{font-size:15px;line-height:1.3;max-width:30ch;margin:6px auto 0;color:var(--ink-2)}
+.fact.blurb p{max-width:34ch;font-size:15.5px;line-height:1.35;color:var(--ink)}
 .fact.line p{font-family:var(--serif);color:var(--green);font-size:clamp(20px,2.1vw,26px);line-height:1.15;max-width:22ch;text-transform:uppercase;letter-spacing:-.02em}
 .dock{position:absolute;z-index:4;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:var(--paper);border:1px solid var(--rule);border-radius:999px;padding:5px;box-shadow:0 8px 24px -14px rgba(30,58,32,.5)}
 .dock button,.dock a{font:inherit;background:none;border:0;cursor:pointer;color:var(--ink);text-decoration:none;border-radius:999px;padding:9px 14px;display:flex;align-items:center;gap:8px}
@@ -471,10 +472,10 @@ figure{margin:0}
 <script>
 const A='assets/';
 const PROJECTS=[
- {id:'j-walker',name:'J-Walker',cut:'c-jwalker',thumb:'jw-door',course:'Design Studio 4',term:'Spring 2026',cat:'Mobility aid',short:'A crutch that uses your weight instead of fighting it.',stat:['56%','of walking aid users in one study picked hiking poles or umbrellas over medical-looking aids'],line:'Your own weight, used instead of fought',lede:'A crutch that turns the drop in your stride into the push for the next one, using your own weight instead of fighting it.'},
- {id:'mednest',name:'MedNest',cut:'c-mednest',thumb:'mn-hero',course:'Design Studio 4',term:'Spring 2026',cat:'Home health',short:'A wall-mounted medication hub that hides in plain sight.',stat:['50%','of people with a chronic illness don\'t take their medication as prescribed'],line:'Hides in plain sight on the wall',lede:'A wall-mounted smart medical device that helps elderly users manage their daily medication independently, giving families peace of mind.'},
- {id:'hexachop',name:'HexaChop',cut:'c-hexachop',thumb:'hx-render',course:'Design Studio 3',term:'Fall 2025',cat:'Kitchen',short:'A shared chopping station for roommates.',stat:['46%','of adult eating occasions in the US happen alone'],line:'Most kitchen tools are solo tools',lede:'A shared chopping station that turns cooking into a way for roommates to unwind together.'},
- {id:'sonic-snap',name:'Sonic Snap',cut:'c-sonicsnap',thumb:'ss-render-5',course:'Process Drawing & Digital Presentation',term:'Fall 2024',cat:'Audio',short:'A speaker that splits up and follows you room to room.',stat:['67%','of Bluetooth speaker owners keep their "portable" speaker in one spot'],line:'Separates, reconfigures, follows you',lede:'A modular speaker system with an interlocking form that separates and reconfigures, designed for people whose listening does not stay in one room.'},
+ {id:'j-walker',name:'J-Walker',cut:'c-jwalker',thumb:'jw-door',course:'Design Studio 4',term:'Spring 2026',cat:'Mobility aid',short:'A crutch that uses your weight instead of fighting it.',blurb:'A crutch shaped like a running blade. The carbon fiber curve takes the load off your arms, and looks like it belongs there.',line:'Your own weight, used instead of fought',lede:'A crutch that turns the drop in your stride into the push for the next one, using your own weight instead of fighting it.'},
+ {id:'mednest',name:'MedNest',cut:'c-mednest',thumb:'mn-hero',course:'Design Studio 4',term:'Spring 2026',cat:'Home health',short:'A wall-mounted medication hub that hides in plain sight.',blurb:'Most home health devices track. Few remind. A wall-mounted hub for vitals and medication, built around follow-through.',line:'Hides in plain sight on the wall',lede:'A wall-mounted smart medical device that helps elderly users manage their daily medication independently, giving families peace of mind.'},
+ {id:'hexachop',name:'HexaChop',cut:'c-hexachop',thumb:'hx-render',course:'Design Studio 3',term:'Fall 2025',cat:'Kitchen',short:'A shared chopping station for roommates.',blurb:'A hexagonal cutting board that splits for small jobs and locks together for big ones, so two people can cook side by side.',line:'Most kitchen tools are solo tools',lede:'A shared chopping station that turns cooking into a way for roommates to unwind together.'},
+ {id:'sonic-snap',name:'Sonic Snap',cut:'c-sonicsnap',thumb:'ss-render-5',course:'Process Drawing & Digital Presentation',term:'Fall 2024',cat:'Audio',short:'A speaker that splits up and follows you room to room.',blurb:'Bluetooth speakers are built for one spot. This one snaps apart and reconfigures, for listening that moves between rooms.',line:'Separates, reconfigures, follows you',lede:'A modular speaker system with an interlocking form that separates and reconfigures, designed for people whose listening does not stay in one room.'},
 ];
 const EXTRA=[{id:'explorations',name:'Kickback',thumb:'kb-sit',cat:'Furniture',course:'Designing Chairs',term:'Fall 2025'},{id:'explorations',name:'Vitra Lighting',thumb:'vl-lucetta-2',cat:'Lighting',course:'Client project',term:'2025'}];
 const img=(n,alt='',cls='')=>`<img src="${A}${n}.webp" alt="${alt}" loading="lazy" decoding="async"${cls?` class="${cls}"`:''}>`;
@@ -515,7 +516,7 @@ function work(){
 
 const SCRIBS=[['M2 14 C 40 6, 90 18, 140 11 S 230 6, 298 12','M30 20 C 90 15, 170 21, 260 16'],['M3 10 C 50 18, 110 6, 170 13 S 250 18, 297 9','M60 19 C 120 14, 200 20, 285 15'],['M2 12 C 60 9, 120 15, 180 10 S 260 14, 298 13','M10 19 C 80 22, 160 15, 240 19']];
 function specHTML(p){const v=SCRIBS[PROJECTS.indexOf(p)%SCRIBS.length];return `<h3><span class="scrib">${p.name}<svg viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true">${v.map(d=>`<path pathLength="1" d="${d}"/>`).join('')}</svg></span></h3>`}
-function factsHTML(p){return `<div class="fact"><div class="num">${p.stat[0]}</div><p>${p.stat[1]}</p></div>`}
+function factsHTML(p){return `<div class="fact blurb"><p>${p.blurb}</p></div>`}
 
 function projectShell(p,inner,nextId){
   const n=PROJECTS.find(x=>x.id===nextId);
