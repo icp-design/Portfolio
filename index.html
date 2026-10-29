@@ -294,6 +294,8 @@ figure{margin:0}
 .card{--dx:0px;--dy:0px;transform:translate(var(--dx),var(--dy)) rotate(var(--r,0deg));position:relative}
 .card:hover{transform:translate(var(--dx),var(--dy)) rotate(0) translateY(-6px) scale(1.02);box-shadow:0 26px 40px -24px rgba(28,31,35,.6);z-index:5}
 .can-drag .card{cursor:grab;touch-action:none}
+.can-hold .card{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.can-hold .card img{-webkit-touch-callout:none;pointer-events:none}
 .card.dragging{cursor:grabbing;transition:box-shadow .3s;z-index:20;box-shadow:0 40px 60px -26px rgba(28,31,35,.6)}
 .card.dragging:hover{transform:translate(var(--dx),var(--dy)) rotate(0) scale(1.04)}
 .card img{pointer-events:none;-webkit-user-drag:none;user-select:none}
@@ -807,9 +809,9 @@ function initCycle(){const set=document.getElementById('lamps');document.querySe
   c.addEventListener('click',()=>{if(c.dataset.moved==='1')return;go();on();clearTimeout(c._t);c._t=setTimeout(off,1600)});
   [2,3].forEach(n=>{const p=new Image();p.src=A+'vl-'+id+'-'+n+'.webp'})})}
 
-/* ---------- Explorations: drag cards around (mouse and trackpad only, so phones still scroll) ---------- */
+/* ---------- Explorations: drag cards around (mouse and trackpad; phones use press and hold below) ---------- */
 function initDrag(){
-  if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches){initTouchDrag();return}
   document.querySelectorAll('.scatter').forEach(sc=>sc.classList.add('can-drag'));
   let z=10;
   document.querySelectorAll('.scatter .card').forEach(c=>{
@@ -822,6 +824,23 @@ function initDrag(){
       const up=()=>{c.removeEventListener('pointermove',mv);c.removeEventListener('pointerup',up);c.classList.remove('dragging');c.dataset.moved=moved?'1':'0';setTimeout(()=>c.dataset.moved='0',50)};
       c.addEventListener('pointermove',mv);c.addEventListener('pointerup',up);
     });
+  });
+}
+
+/* phones: press and hold a card to pick it up, so normal swipes still scroll the page */
+function initTouchDrag(){
+  document.querySelectorAll('.scatter').forEach(sc=>sc.classList.add('can-hold'));
+  const h=document.querySelector('.pg-head .hint');if(h)h.textContent='Press and hold to move things around. Nothing breaks.';
+  let z=10;
+  document.querySelectorAll('.scatter .card').forEach(c=>{let t=null,held=false,sx=0,sy=0,ox=0,oy=0;
+    c.addEventListener('touchstart',e=>{if(e.touches.length>1)return;const p=e.touches[0];sx=p.clientX;sy=p.clientY;ox=parseFloat(c.style.getPropertyValue('--dx'))||0;oy=parseFloat(c.style.getPropertyValue('--dy'))||0;held=false;
+      clearTimeout(t);t=setTimeout(()=>{held=true;c.classList.add('dragging');c.style.zIndex=++z;c.dataset.moved='1';navigator.vibrate&&navigator.vibrate(12)},280)},{passive:true});
+    c.addEventListener('touchmove',e=>{const p=e.touches[0],dx=p.clientX-sx,dy=p.clientY-sy;
+      if(!held){if(Math.hypot(dx,dy)>8)clearTimeout(t);return}
+      e.preventDefault();c.style.setProperty('--dx',ox+dx+'px');c.style.setProperty('--dy',oy+dy+'px')},{passive:false});
+    const end=()=>{clearTimeout(t);if(held){held=false;c.classList.remove('dragging');setTimeout(()=>c.dataset.moved='0',60)}};
+    c.addEventListener('touchend',end);c.addEventListener('touchcancel',end);
+    c.addEventListener('contextmenu',e=>{if(held||c.classList.contains('dragging'))e.preventDefault()});
   });
 }
 
