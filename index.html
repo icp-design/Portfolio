@@ -166,12 +166,10 @@ main{min-height:100vh}
 .swap.out{opacity:0;transform:translateY(8px)}
 
 /* selected works: a horizontal strip you scroll through */
-.track{position:absolute;inset:0 0 44px 0;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none;--iw:34cqw;padding-inline:calc(50cqw - var(--iw) / 2);cursor:grab;overscroll-behavior-x:contain;user-select:none}
+.track{position:absolute;inset:0 0 44px 0;overflow:hidden;--iw:34cqw;cursor:grab;user-select:none;touch-action:pan-y}
 #stage{container-type:inline-size}
-.track::-webkit-scrollbar{display:none}
-.track.snap{scroll-snap-type:x mandatory}
-.track.grabbing{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
-.slide{flex:0 0 var(--iw);height:100%;display:grid;place-items:center;scroll-snap-align:center;cursor:pointer}
+.track.grabbing{cursor:grabbing}
+.slide{position:absolute;top:0;left:calc(50% - var(--iw) / 2);width:var(--iw);height:100%;display:grid;place-items:center;cursor:pointer;will-change:transform}
 .slide .in{display:grid;place-items:center;width:100%;height:100%;will-change:transform,opacity}
 .slide img{max-width:88%;max-height:calc(clamp(360px,calc(100svh - 360px),640px) - 150px);width:auto;object-fit:contain;filter:drop-shadow(0 30px 30px rgba(28,31,35,.18));pointer-events:none;-webkit-user-drag:none}
 @media (max-width:640px){.track{position:relative;inset:auto;height:250px;--iw:64cqw}.slide img{max-height:200px}}
@@ -216,6 +214,7 @@ footer .mono{color:var(--sage)}
 figure{margin:0}
 .p-hero img{aspect-ratio:2.2;object-fit:cover}
 .p-hero img.pos-r{object-position:78% 50%}
+.p-hero img.pos-hx{aspect-ratio:2;object-position:50% 65%}
 .swatch{position:relative;display:grid;grid-template-rows:auto 1fr auto;gap:8px;padding:18px 20px 22px;background:color-mix(in srgb,var(--sw) 9%,var(--paper-2));transition:background-color .5s}
 .sw-top{display:flex;justify-content:space-between;gap:12px}
 .sw-name{color:var(--ink)}
@@ -623,7 +622,7 @@ function mednest(){
 function hexachop(){
   const p=PROJECTS[2];
   return projectShell(p,`
-  <figure class="frame p-hero">${img('hx-hero','HexaChop on a kitchen counter')}</figure>
+  <figure class="frame p-hero">${img('hx-hero','HexaChop on a kitchen counter','pos-hx')}</figure>
   <section class="block">${head('Problem','Same kitchen, <span class="serif">separate dinners</span>')}
     ${statRow([['61%','of young adults aged 18 to 25 report serious loneliness','1'],['46%','of adult eating occasions in the US happen alone','2'],['32%','of US adults share a home with another adult who isn\'t their partner','3']])}
     <div class="pains three">
@@ -736,47 +735,47 @@ document.addEventListener('click',e=>{if(!pill.contains(e.target)&&!tiles.contai
 function initStage(){
   const stage=document.getElementById('stage');if(!stage)return;
   const track=document.getElementById('track'),slides=[...track.children],spec=document.getElementById('spec'),facts=document.getElementById('facts'),open=document.getElementById('open');
-  const N=PROJECTS.length;let cur=-1,curSlide=N,raf=0,idle=0,jumping=false;
+  const N=PROJECTS.length,S=slides.length;let cur=-1,shown=-1;
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  const W=()=>slides[0].offsetWidth;
-  const leftFor=k=>slides[k].offsetLeft-(track.clientWidth-slides[k].offsetWidth)/2;
+  /* everything is drawn from one number, pos (in slides), so position, size and tilt always move together and the loop has no seams */
+  let pos=0,tgt=0,raf=0,last=0,W=slides[0].offsetWidth||300;
+  const wrap=d=>((d%S)+S+S/2)%S-S/2;
   function show(i){if(i===cur)return;const first=cur<0;cur=i;const p=PROJECTS[i];open.href='#'+p.id;
     const swap=()=>{spec.innerHTML=specHTML(p);facts.innerHTML=factsHTML(p);spec.classList.remove('out');facts.classList.remove('out')};
     if(first)swap();else{spec.classList.add('out');facts.classList.add('out');clearTimeout(show.t);show.t=setTimeout(swap,220)}}
-  function paint(){raf=0;const tr=track.getBoundingClientRect(),c=tr.left+tr.width/2;let best=0,bd=1e9;
-    slides.forEach((s,k)=>{const r=s.getBoundingClientRect(),d=(r.left+r.width/2-c)/r.width,a=Math.abs(d);
-      if(a<bd){bd=a;best=k}
-      if(a>3){s.firstChild.style.opacity=0;return}
+  function draw(){
+    slides.forEach((s,k)=>{const d=wrap(k-pos),a=Math.abs(d),el=s.firstChild;
+      if(a>2.6){el.style.opacity=0;s.style.visibility='hidden';return}
+      s.style.visibility='';
       const sc=1-Math.min(a,1.6)*0.42,rot=reduce?0:Math.max(-1.6,Math.min(1.6,d))*9,op=1-Math.min(a,2)*0.32;
-      s.firstChild.style.transform=`translateY(${Math.min(a,1.6)*14}px) scale(${sc}) rotate(${rot}deg)`;s.firstChild.style.opacity=op});
-    if(best!==curSlide){curSlide=best;slides.forEach((s,k)=>s.setAttribute('aria-hidden',k!==best));clearTimeout(paint.t);paint.t=setTimeout(()=>show(curSlide%N),cur<0?0:160)}}
-  /* keep the strip endless: when it settles in the first or last copy, jump silently to the same spot in the middle copy */
-  let touching=false;
-  function recenter(){if(drag||touching)return;const set=W()*N,l=track.scrollLeft,mid=leftFor(N);
-    let nl=l;if(l<mid-set*0.5)nl=l+set;else if(l>mid+set*1.5)nl=l-set;
-    if(Math.abs(nl-l)>1){if(coarse)track.style.scrollSnapType='none';track.scrollLeft=nl;paint();if(coarse)requestAnimationFrame(()=>{track.style.scrollSnapType=''})}}
-  const hasEnd='onscrollend' in window;
-  const req=()=>{if(!raf)raf=requestAnimationFrame(paint);if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),220)}};
-  track.addEventListener('scroll',req,{passive:true});
-  const coarse=matchMedia('(pointer:coarse)').matches;if(coarse)track.classList.add('snap');
-  /* on desktop we settle ourselves: glide to the nearest slide once scrolling stops, then loop silently */
-  function settle(){if(drag||touching)return;if(!coarse){const t=leftFor(curSlide);if(Math.abs(track.scrollLeft-t)>2){track.scrollTo({left:t,behavior:'smooth'});return}}recenter()}
-  if(hasEnd)track.addEventListener('scrollend',()=>{clearTimeout(idle);idle=setTimeout(settle,40)});
-  track.addEventListener('touchstart',()=>{touching=true;clearTimeout(idle)},{passive:true});
-  track.addEventListener('touchend',()=>{touching=false;if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),320)}},{passive:true});addEventListener('resize',()=>{track.scrollLeft=leftFor(curSlide);req()});
-  const goTo=k=>{track.scrollTo({left:leftFor(Math.max(0,Math.min(slides.length-1,k))),behavior:reduce?'auto':'smooth'})};
-  document.getElementById('prev').onclick=()=>goTo(curSlide-1);
-  document.getElementById('next').onclick=()=>goTo(curSlide+1);
-  stage.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){goTo(curSlide+1);e.preventDefault()}if(e.key==='ArrowLeft'){goTo(curSlide-1);e.preventDefault()}});
-  let drag=null,moved=false;
-  track.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;drag={x:e.clientX,l:track.scrollLeft,t:performance.now(),v:0};moved=false;track.classList.add('grabbing');track.setPointerCapture(e.pointerId)});
-  track.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>4)moved=true;const now=performance.now(),nl=drag.l-dx;drag.v=(nl-track.scrollLeft)/Math.max(1,now-drag.t);drag.t=now;track.scrollLeft=nl});
-  const end=()=>{if(!drag)return;const v=drag.v;drag=null;track.classList.remove('grabbing');
-    const proj=track.scrollLeft+v*220;goTo(Math.round((proj-leftFor(0))/W()))};
-  track.addEventListener('pointerup',end);track.addEventListener('pointercancel',end);
-  slides.forEach((s,k)=>s.addEventListener('click',()=>{if(moved){moved=false;return}if(k===curSlide)location.hash=PROJECTS[k%N].id;else goTo(k)}));
-  track.style.scrollSnapType='none';track.scrollLeft=leftFor(N);requestAnimationFrame(()=>{track.style.scrollSnapType=''});
-  paint();show(curSlide%N);
+      s.style.transform=`translateX(${d*W}px)`;
+      el.style.transform=`translateY(${Math.min(a,1.6)*14}px) scale(${sc}) rotate(${rot}deg)`;el.style.opacity=op});
+    const c=((Math.round(pos)%S)+S)%S;
+    if(c!==shown){shown=c;slides.forEach((s,k)=>s.setAttribute('aria-hidden',k!==c));clearTimeout(draw.t);draw.t=setTimeout(()=>show(c%N),cur<0?0:140)}}
+  function tick(t){const dt=Math.min(64,t-(last||t));last=t;
+    const k=1-Math.pow(1-0.16,dt/16.7);pos+=(tgt-pos)*k;
+    if(Math.abs(tgt-pos)<0.0005)pos=tgt;
+    draw();raf=pos!==tgt||dragging?requestAnimationFrame(tick):0;if(!raf)last=0}
+  const kick=()=>{if(!raf)raf=requestAnimationFrame(tick)};
+  const goTo=n=>{tgt=n;kick()};
+  /* trackpad and wheel: follow the fingers, then settle on the nearest slide once they stop */
+  let wheelT=0;
+  stage.addEventListener('wheel',e=>{const dx=e.shiftKey?e.deltaY:e.deltaX;if(Math.abs(dx)<=Math.abs(e.shiftKey?0:e.deltaY))return;
+    e.preventDefault();tgt+=dx/W;kick();clearTimeout(wheelT);wheelT=setTimeout(()=>goTo(Math.round(tgt)),120)},{passive:false});
+  /* drag with mouse or finger; vertical swipes still scroll the page on phones */
+  let dragging=false,moved=false,sx=0,sp=0,vx=0,lx=0,lt=0,pid=null;
+  track.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;dragging=true;moved=false;pid=e.pointerId;sx=lx=e.clientX;lt=performance.now();sp=tgt=pos;vx=0;track.classList.add('grabbing');kick()});
+  track.addEventListener('pointermove',e=>{if(!dragging||e.pointerId!==pid)return;const dx=e.clientX-sx;if(Math.abs(dx)>5&&!moved){moved=true;try{track.setPointerCapture(pid)}catch(_){}}
+    const now=performance.now();vx=0.8*vx+0.2*((e.clientX-lx)/Math.max(1,now-lt));lx=e.clientX;lt=now;tgt=pos=sp-dx/W;kick()});
+  const end=e=>{if(!dragging)return;dragging=false;track.classList.remove('grabbing');
+    const fling=-vx*260/W;goTo(Math.round(pos+Math.max(-2,Math.min(2,fling))))};
+  track.addEventListener('pointerup',end);track.addEventListener('pointercancel',end);track.addEventListener('lostpointercapture',end);
+  slides.forEach((s,k)=>s.addEventListener('click',()=>{if(moved){moved=false;return}const d=Math.round(wrap(k-pos));if(d===0)location.hash=PROJECTS[k%N].id;else goTo(Math.round(tgt)+d)}));
+  document.getElementById('prev').onclick=()=>goTo(Math.round(tgt)-1);
+  document.getElementById('next').onclick=()=>goTo(Math.round(tgt)+1);
+  stage.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){goTo(Math.round(tgt)+1);e.preventDefault()}if(e.key==='ArrowLeft'){goTo(Math.round(tgt)-1);e.preventDefault()}});
+  const ro=new ResizeObserver(()=>{W=slides[0].offsetWidth||W;draw()});ro.observe(track);
+  draw();show(0);
 }
 
 /* ---------- sonic snap: colorway picker ---------- */
