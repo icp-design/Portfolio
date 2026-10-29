@@ -760,7 +760,7 @@ function initStage(){
   track.addEventListener('scroll',req,{passive:true});
   const coarse=matchMedia('(pointer:coarse)').matches;if(coarse)track.classList.add('snap');
   /* on desktop we settle ourselves: glide to the nearest slide once scrolling stops, then loop silently */
-  function settle(){if(drag||touching)return;if(!coarse){const t=leftFor(curSlide);if(Math.abs(track.scrollLeft-t)>2){track.scrollTo({left:t,behavior:reduce?'auto':'smooth'});return}}recenter()}
+  function settle(){if(drag||touching)return;if(!coarse){const t=leftFor(curSlide);if(Math.abs(track.scrollLeft-t)>2){track.scrollTo({left:t,behavior:'smooth'});return}}recenter()}
   if(hasEnd)track.addEventListener('scrollend',()=>{clearTimeout(idle);idle=setTimeout(settle,40)});
   track.addEventListener('touchstart',()=>{touching=true;clearTimeout(idle)},{passive:true});
   track.addEventListener('touchend',()=>{touching=false;if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),320)}},{passive:true});addEventListener('resize',()=>{track.scrollLeft=leftFor(curSlide);req()});
@@ -792,7 +792,7 @@ function initFlip(){const c=document.getElementById('vl-flip');if(!c)return;cons
   const go=()=>{k=k%n+1;const u=A+'vl-sk-'+k+'.webp',nx=new Image();nx.src=u;(nx.decode?nx.decode():Promise.resolve()).then(()=>{im.src=u;lab.textContent=k+' / '+n},()=>{im.src=u})};
   /* flips on its own while on screen; hovering speeds it up */
   const run=ms=>{clearInterval(t);t=setInterval(go,ms)};
-  if(!matchMedia('(prefers-reduced-motion:reduce)').matches){let seen=false;
+  {let seen=false;
     new IntersectionObserver(e=>{seen=e[0].isIntersecting;if(seen)run(800);else clearInterval(t)},{threshold:.2}).observe(c);
     c.addEventListener('mouseenter',()=>run(380));c.addEventListener('mouseleave',()=>seen?run(800):clearInterval(t));}
   c.addEventListener('click',()=>{if(c.dataset.moved==='1')return;go()});}
