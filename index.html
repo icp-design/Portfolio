@@ -166,9 +166,10 @@ main{min-height:100vh}
 .swap.out{opacity:0;transform:translateY(8px)}
 
 /* selected works: a horizontal strip you scroll through */
-.track{position:absolute;inset:0 0 44px 0;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-ms-overflow-style:none;--iw:34cqw;padding-inline:calc(50cqw - var(--iw) / 2);cursor:grab;overscroll-behavior-x:contain;user-select:none}
+.track{position:absolute;inset:0 0 44px 0;display:flex;align-items:center;overflow-x:auto;overflow-y:hidden;scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none;--iw:34cqw;padding-inline:calc(50cqw - var(--iw) / 2);cursor:grab;overscroll-behavior-x:contain;user-select:none}
 #stage{container-type:inline-size}
 .track::-webkit-scrollbar{display:none}
+.track.snap{scroll-snap-type:x mandatory}
 .track.grabbing{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
 .slide{flex:0 0 var(--iw);height:100%;display:grid;place-items:center;scroll-snap-align:center;cursor:pointer}
 .slide .in{display:grid;place-items:center;width:100%;height:100%;will-change:transform,opacity}
@@ -747,13 +748,21 @@ function initStage(){
       if(a>3){s.firstChild.style.opacity=0;return}
       const sc=1-Math.min(a,1.6)*0.42,rot=reduce?0:Math.max(-1.6,Math.min(1.6,d))*9,op=1-Math.min(a,2)*0.32;
       s.firstChild.style.transform=`translateY(${Math.min(a,1.6)*14}px) scale(${sc}) rotate(${rot}deg)`;s.firstChild.style.opacity=op});
-    curSlide=best;slides.forEach((s,k)=>s.setAttribute('aria-hidden',k!==best));show(best%N)}
+    if(best!==curSlide){curSlide=best;slides.forEach((s,k)=>s.setAttribute('aria-hidden',k!==best));clearTimeout(paint.t);paint.t=setTimeout(()=>show(curSlide%N),cur<0?0:160)}}
   /* keep the strip endless: when it settles in the first or last copy, jump silently to the same spot in the middle copy */
-  function recenter(){if(drag)return;const set=W()*N,l=track.scrollLeft,mid=leftFor(N);
+  let touching=false;
+  function recenter(){if(drag||touching)return;const set=W()*N,l=track.scrollLeft,mid=leftFor(N);
     let nl=l;if(l<mid-set*0.5)nl=l+set;else if(l>mid+set*1.5)nl=l-set;
-    if(nl!==l){jumping=true;track.style.scrollSnapType='none';track.scrollLeft=nl;void track.offsetWidth;track.style.scrollSnapType='';jumping=false;paint()}}
-  const req=()=>{if(!raf)raf=requestAnimationFrame(paint);clearTimeout(idle);idle=setTimeout(recenter,140)};
-  track.addEventListener('scroll',req,{passive:true});addEventListener('resize',()=>{track.scrollLeft=leftFor(curSlide);req()});
+    if(Math.abs(nl-l)>1){track.style.scrollSnapType='none';track.scrollLeft=nl;requestAnimationFrame(()=>{track.style.scrollSnapType='';paint()})}}
+  const hasEnd='onscrollend' in window;
+  const req=()=>{if(!raf)raf=requestAnimationFrame(paint);if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),220)}};
+  track.addEventListener('scroll',req,{passive:true});
+  const coarse=matchMedia('(pointer:coarse)').matches;if(coarse)track.classList.add('snap');
+  /* on desktop we settle ourselves: glide to the nearest slide once scrolling stops, then loop silently */
+  function settle(){if(drag||touching)return;if(!coarse){const t=leftFor(curSlide);if(Math.abs(track.scrollLeft-t)>2){track.scrollTo({left:t,behavior:reduce?'auto':'smooth'});return}}recenter()}
+  if(hasEnd)track.addEventListener('scrollend',()=>{clearTimeout(idle);idle=setTimeout(settle,40)});
+  track.addEventListener('touchstart',()=>{touching=true;clearTimeout(idle)},{passive:true});
+  track.addEventListener('touchend',()=>{touching=false;if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),320)}},{passive:true});addEventListener('resize',()=>{track.scrollLeft=leftFor(curSlide);req()});
   const goTo=k=>{track.scrollTo({left:leftFor(Math.max(0,Math.min(slides.length-1,k))),behavior:reduce?'auto':'smooth'})};
   document.getElementById('prev').onclick=()=>goTo(curSlide-1);
   document.getElementById('next').onclick=()=>goTo(curSlide+1);
@@ -765,8 +774,8 @@ function initStage(){
     const proj=track.scrollLeft+v*220;goTo(Math.round((proj-leftFor(0))/W()))};
   track.addEventListener('pointerup',end);track.addEventListener('pointercancel',end);
   slides.forEach((s,k)=>s.addEventListener('click',()=>{if(moved){moved=false;return}if(k===curSlide)location.hash=PROJECTS[k%N].id;else goTo(k)}));
-  track.style.scrollSnapType='none';track.scrollLeft=leftFor(N);void track.offsetWidth;track.style.scrollSnapType='';
-  paint();
+  track.style.scrollSnapType='none';track.scrollLeft=leftFor(N);requestAnimationFrame(()=>{track.style.scrollSnapType=''});
+  paint();show(curSlide%N);
 }
 
 /* ---------- sonic snap: colorway picker ---------- */
