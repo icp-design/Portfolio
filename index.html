@@ -445,7 +445,7 @@ figure{margin:0}
 </header>
 <nav class="tiles" id="tiles" aria-label="Main">
   <a href="#work"><span><small>01</small></span><span>Work</span></a>
-  <a href="#found-out"><span><small>02</small></span><span class="js-lab">Found Out</span></a>
+  <a href="#explorations"><span><small>02</small></span><span class="js-lab">Explorations</span></a>
   <a href="#about"><span><small>03</small></span><span>About</span></a>
 </nav>
 <div class="tiles say" id="say" role="dialog" aria-label="Contact">
@@ -475,13 +475,13 @@ const PROJECTS=[
  {id:'hexachop',name:'HexaChop',cut:'c-hexachop',thumb:'hx-render',course:'Design Studio 3',term:'Fall 2025',cat:'Kitchen',short:'A shared chopping station for roommates.',stat:['46%','of adult eating occasions in the US happen alone'],line:'Most kitchen tools are solo tools',lede:'A shared chopping station that turns cooking into a way for roommates to unwind together.'},
  {id:'sonic-snap',name:'Sonic Snap',cut:'c-sonicsnap',thumb:'ss-render-5',course:'Process Drawing & Digital Presentation',term:'Fall 2024',cat:'Audio',short:'A speaker that splits up and follows you room to room.',stat:['67%','of Bluetooth speaker owners keep their "portable" speaker in one spot'],line:'Separates, reconfigures, follows you',lede:'A modular speaker system with an interlocking form that separates and reconfigures, designed for people whose listening does not stay in one room.'},
 ];
-const EXTRA=[{id:'found-out',name:'Kickback',thumb:'kb-sit',cat:'Furniture',course:'Designing Chairs',term:'Fall 2025'},{id:'found-out',name:'Vitra Lighting',thumb:'vl-lucetta-2',cat:'Lighting',course:'Client project',term:'2025'}];
+const EXTRA=[{id:'explorations',name:'Kickback',thumb:'kb-sit',cat:'Furniture',course:'Designing Chairs',term:'Fall 2025'},{id:'explorations',name:'Vitra Lighting',thumb:'vl-lucetta-2',cat:'Lighting',course:'Client project',term:'2025'}];
 const img=(n,alt='',cls='')=>`<img src="${A}${n}.webp" alt="${alt}" loading="lazy" decoding="async"${cls?` class="${cls}"`:''}>`;
 const fig=(n,cap)=>`<figure class="frame">${img(n,cap)}<figcaption><span class="mono">${cap}</span></figcaption></figure>`;
 const esc=s=>s;
 
 /* ---------- views ---------- */
-const LAB='Found Out';
+const LAB='Explorations';
 function home(){
   return `<section class="view">
   <div class="hero wrap">
@@ -676,9 +676,9 @@ function playground(){
   <div class="pg-head"><div><a class="crumb mono" href="#home">&larr; Home</a><h1 class="pg-name js-lab">${LAB}</h1><p>Side projects, client work and things I made just to see what happens.</p><p class="mono hint">Drag things around. Nothing breaks.</p></div><div class="pg-count" aria-label="${total} pieces">${total}</div></div>
   <div class="pg-set"><div class="pg-title"><div><span class="mono">Designing Chairs, 2025</span><h2>Kickback</h2></div><p>A full-scale pine lounge chair. The joints are the detail.</p></div>
     <div class="scatter">${kb.map(k=>card(...k)).join('')}</div></div>
-  <div class="pg-set lamps" id="lamps"><div class="pg-title"><div><span class="mono">Client project, Spring 2025</span><h2>Vitra Lighting</h2></div><p>Three families, six lamps. Hover one to switch it on.</p></div>
+  <div class="pg-set lamps" id="lamps"><div class="pg-title"><div><span class="mono">Client project, Spring 2025</span><h2>Vitra Lighting</h2></div><p>Three families, six lamps. Hover one to switch it on, or the sketches to flip through them.</p></div>
     <div class="scatter">${vl.map(([id,n,fam,sp,mt,r])=>`<figure class="card cycle" data-cycle="${id}" style="--span:${sp};--mt:${mt};--r:${r};--ar:1.51">${img('vl-'+id+'-1',n+' lamp')}<figcaption><span class="mono">${n}</span><span class="mono">${fam}</span></figcaption></figure>`).join('')}
-    <figure class="card" style="--span:8;--mt:20px;--r:-1deg;--ar:1"><img src="${A}vl-sketch.webp" alt="Ideation sketches" loading="lazy" style="object-fit:contain"><figcaption><span class="mono">Ideation</span></figcaption></figure></div></div>
+    <figure class="card flip" id="vl-flip" data-n="9" style="--span:5;--mt:20px;--r:-1deg;--ar:1"><img src="${A}vl-sk-1.webp" alt="Ideation sketch" loading="lazy" style="object-fit:contain;background:#fff"><figcaption><span class="mono">Ideation</span><span class="mono flip-n">1 / 9</span></figcaption></figure></div></div>
   </div><div style="height:100px"></div></section>`;
 }
 
@@ -700,22 +700,23 @@ function about(){
   </div></div></section>`;
 }
 
-const ROUTES={home,work,'j-walker':jwalker,mednest,hexachop,'sonic-snap':sonic,'found-out':playground,about};
+const ROUTES={home,work,'j-walker':jwalker,mednest,hexachop,'sonic-snap':sonic,'explorations':playground,about};
 const app=document.getElementById('app');
 function route(){
   let h=(location.hash||'#home').slice(1);
   if(h==='contact'){ if(!app.innerHTML) render('home'); history.replaceState(null,'',location.pathname+location.search+'#'+(app.dataset.view||'home')); setTimeout(()=>openPanel('say'),0); return; }
   if(h==='selected'){ if(!app.querySelector('#stage')) render('work'); closeMenu(); document.getElementById('selected').scrollIntoView({behavior:'smooth'}); return; }
+  if(h==='found-out'){h='explorations';history.replaceState(null,'','#explorations')}
   if(!ROUTES[h]) h='home';
   render(h); window.scrollTo(0,0); closeMenu();
 }
 function render(h){
   app.innerHTML=ROUTES[h]();app.dataset.view=h;
   document.querySelectorAll('.tiles a').forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+(PROJECTS.some(p=>p.id===h)?'work':h)));
-  document.title=h==='home'?'Ishan Patel':(PROJECTS.find(p=>p.id===h)?.name||(h==='found-out'?LAB:h[0].toUpperCase()+h.slice(1)))+' · Ishan Patel';
+  document.title=h==='home'?'Ishan Patel':(PROJECTS.find(p=>p.id===h)?.name||(h==='explorations'?LAB:h[0].toUpperCase()+h.slice(1)))+' · Ishan Patel';
   document.querySelectorAll('.js-lab').forEach(e=>e.textContent=LAB);
   if(h==='home')initStage();
-  if(h==='found-out'){initCycle();initDrag();}
+  if(h==='explorations'){initCycle();initDrag();initFlip();}
   if(h==='sonic-snap')initSwatch();
   const bs=document.querySelector('.bars');if(bs){const io=new IntersectionObserver(e=>{if(e[0].isIntersecting){bs.classList.add('in');io.disconnect()}},{threshold:.3});io.observe(bs)}
   tickTime();fit();
@@ -753,7 +754,7 @@ function initStage(){
   let touching=false;
   function recenter(){if(drag||touching)return;const set=W()*N,l=track.scrollLeft,mid=leftFor(N);
     let nl=l;if(l<mid-set*0.5)nl=l+set;else if(l>mid+set*1.5)nl=l-set;
-    if(Math.abs(nl-l)>1){track.style.scrollSnapType='none';track.scrollLeft=nl;requestAnimationFrame(()=>{track.style.scrollSnapType='';paint()})}}
+    if(Math.abs(nl-l)>1){if(coarse)track.style.scrollSnapType='none';track.scrollLeft=nl;paint();if(coarse)requestAnimationFrame(()=>{track.style.scrollSnapType=''})}}
   const hasEnd='onscrollend' in window;
   const req=()=>{if(!raf)raf=requestAnimationFrame(paint);if(!hasEnd){clearTimeout(idle);idle=setTimeout(()=>settle(),220)}};
   track.addEventListener('scroll',req,{passive:true});
@@ -785,6 +786,13 @@ function initSwatch(){const f=document.getElementById('swatch');if(!f)return;con
     const n=new Image();n.src=A+'ss-front-'+b.dataset.k+'.webp';im.classList.add('out');Promise.all([n.decode().catch(()=>{}),new Promise(r=>setTimeout(r,160))]).then(()=>{if(t!==tok)return;im.src=n.src;im.classList.remove('out')})};
   bs.forEach((b,i)=>{b.addEventListener('click',()=>pick(b));b.addEventListener('keydown',e=>{const d=e.key==='ArrowRight'||e.key==='ArrowDown'?1:e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:0;if(!d)return;e.preventDefault();const nb=bs[(i+d+bs.length)%bs.length];nb.focus();pick(nb)})});}
 
+/* ---------- explorations: flip through the vitra sketches ---------- */
+function initFlip(){const c=document.getElementById('vl-flip');if(!c)return;const im=c.querySelector('img'),lab=c.querySelector('.flip-n'),n=+c.dataset.n;let k=1,t=null;
+  for(let i=2;i<=n;i++){const p=new Image();p.src=A+'vl-sk-'+i+'.webp'}
+  const go=()=>{k=k%n+1;const u=A+'vl-sk-'+k+'.webp',nx=new Image();nx.src=u;(nx.decode?nx.decode():Promise.resolve()).then(()=>{im.src=u;lab.textContent=k+' / '+n},()=>{im.src=u})};
+  c.addEventListener('mouseenter',()=>{go();t=setInterval(go,420)});c.addEventListener('mouseleave',()=>clearInterval(t));
+  c.addEventListener('click',()=>{if(c.dataset.moved==='1')return;go()});}
+
 /* ---------- lamps: swap colorway and light up the section ---------- */
 const GLOW={spire:'rgba(150,200,120,.42)',lune:'rgba(255,170,70,.5)',orbit:'rgba(255,236,190,.55)',halo:'rgba(255,190,120,.45)',lucetta:'rgba(255,175,90,.5)',nova:'rgba(255,214,120,.5)'};
 function initCycle(){const set=document.getElementById('lamps');document.querySelectorAll('.cycle').forEach(c=>{const im=c.querySelector('img'),id=c.dataset.cycle;let k=1,t=null;
@@ -796,7 +804,7 @@ function initCycle(){const set=document.getElementById('lamps');document.querySe
   c.addEventListener('click',()=>{if(c.dataset.moved==='1')return;go();on();clearTimeout(c._t);c._t=setTimeout(off,1600)});
   [2,3].forEach(n=>{const p=new Image();p.src=A+'vl-'+id+'-'+n+'.webp'})})}
 
-/* ---------- Found Out: drag cards around (mouse and trackpad only, so phones still scroll) ---------- */
+/* ---------- Explorations: drag cards around (mouse and trackpad only, so phones still scroll) ---------- */
 function initDrag(){
   if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;
   document.querySelectorAll('.scatter').forEach(sc=>sc.classList.add('can-drag'));
@@ -823,7 +831,7 @@ addEventListener('keydown',e=>{
   keys='';
   const go=()=>{const cards=document.querySelectorAll('.scatter .card');cards.forEach((c,i)=>{c.style.transition='transform .9s cubic-bezier(.2,.8,.2,1)';c.style.setProperty('--dx',(Math.random()*240-120)+'px');c.style.setProperty('--dy',(Math.random()*160-80)+'px');c.style.setProperty('--r',(Math.random()*40-20)+'deg');setTimeout(()=>c.style.transition='',950)});
     const t=document.getElementById('toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)};
-  if(app.dataset.view!=='found-out'){location.hash='found-out';setTimeout(go,700)}else go();
+  if(app.dataset.view!=='explorations'){location.hash='explorations';setTimeout(go,700)}else go();
 });
 
 /* ---------- index hover peek ---------- */
