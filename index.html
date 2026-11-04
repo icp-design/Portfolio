@@ -475,7 +475,7 @@ const PROJECTS=[
  {id:'j-walker',name:'J-Walker',cut:'c-jwalker',thumb:'jw-door',course:'Design Studio 4',term:'Spring 2026',cat:'Mobility aid',short:'A crutch that uses your weight instead of fighting it.',blurb:'A crutch shaped like a running blade. The carbon fiber curve flexes with every step, so your arms just steer.',line:'Your own weight, used instead of fought',lede:'A crutch that turns the drop in your stride into the push for the next one, using your own weight instead of fighting it.'},
  {id:'mednest',name:'MedNest',cut:'c-mednest',thumb:'mn-hero',course:'Design Studio 4',term:'Spring 2026',cat:'Home health',short:'A wall-mounted medication hub that hides in plain sight.',blurb:'Most home health devices track. Few remind. A wall-mounted hub for vitals and medication that feels like part of your home, not a hospital.',line:'Hides in plain sight on the wall',lede:'A wall-mounted smart medical device that helps elderly users manage their daily medication independently, giving families peace of mind.'},
  {id:'hexachop',name:'HexaChop',cut:'c-hexachop',thumb:'hx-render',course:'Design Studio 3',term:'Fall 2025',cat:'Kitchen',short:'A shared chopping station for roommates.',blurb:'A modular cutting system. Two hexagonal boards fixed together, with a caddy that works around them, so two people can cook side by side.',line:'Most kitchen tools are solo tools',lede:'A shared chopping station that turns cooking into a way for roommates to unwind together.'},
- {id:'sonic-snap',name:'Sonic Snap',cut:'c-sonicsnap',thumb:'ss-render-5',course:'Process Drawing & Digital Presentation',term:'Fall 2024',cat:'Audio',short:'A speaker that splits up and follows you room to room.',blurb:'Bluetooth speakers are built for one spot. This one snaps apart and reconfigures, for listening that moves between rooms.',line:'Separates, reconfigures, follows you',lede:'A modular speaker system with an interlocking form that separates and reconfigures, designed for people whose listening does not stay in one room.'},
+ {id:'sonic-snap',name:'Sonic Snap',cut:'c-sonicsnap',thumb:'ss-render-5',course:'Process Drawing & Digital Presentation',term:'Fall 2024',cat:'Audio',short:'A speaker that snaps onto your friend\'s.',blurb:'Put two side by side and they snap together magnetically. Whichever one is on takes control, and each has its own stem controls.',line:'Snaps together, plays as one',lede:'A Bluetooth speaker that links magnetically with other units. The one that is on leads, the others play along.'},
 ];
 const EXTRA=[{id:'explorations',name:'Kickback',thumb:'kb-sit',cat:'Furniture',course:'Designing Chairs',term:'Fall 2025'},{id:'explorations',name:'Vitra Lighting',thumb:'vl-lucetta-2',cat:'Lighting',course:'Client project',term:'2025'}];
 const img=(n,alt='',cls='')=>`<img src="${A}${n}.webp" alt="${alt}" loading="lazy" decoding="async"${cls?` class="${cls}"`:''}>`;
@@ -593,6 +593,9 @@ const ICONS={
  stack:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><rect x="8" y="26" width="40" height="10" rx="3"/><rect x="8" y="42" width="40" height="10" rx="3"/><rect x="8" y="58" width="40" height="10" rx="3"/></svg>',
  hex:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"><path d="M18 28l10-6 10 6v12l-10 6-10-6z"/><path d="M8 46l10-6 10 6v12l-10 6-10-6z"/><path d="M28 46l10-6 10 6v12l-10 6-10-6z"/></svg>',
  plate:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><circle cx="30" cy="50" r="20"/><circle cx="30" cy="50" r="11"/><path d="M4 30v14M8 30v14M4 44a2 2 0 0 0 4 0M6 46v24"/></svg>',
+ snap:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="30" width="20" height="36" rx="3"/><rect x="33" y="30" width="20" height="36" rx="3"/><path d="M23 42h4M29 42h4M23 54h4M29 54h4"/></svg>',
+ power:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M28 26v20"/><path d="M17 34a16 16 0 1 0 22 0"/></svg>',
+ stems:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="M10 24v48M22 24v48M34 24v48M46 24v48"/><path d="M5 38h10M17 58h10M29 32h10M41 50h10"/></svg>',
  home:'<svg viewBox="0 0 56 96" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M6 46 28 24l22 22"/><path d="M12 40v44h32V40"/><path d="M28 54v18M19 63h18"/></svg>'};
 const pain=(icon,k,h,t)=>`<div class="pain"><span class="ico">${icon}</span><div><span class="mono">${k}</span><h3>${h}</h3><p>${t}</p></div></div>`;
 function mednest(){
@@ -654,12 +657,19 @@ function sonic(){
     <div class="sw-stage">${img('ss-front-'+SS_COLORS[4][0],'Sonic Snap, front view')}</div>
     <div class="sw-dots" role="radiogroup" aria-label="Colorway">${SS_COLORS.map(([k,n,c],i)=>`<button type="button" role="radio" aria-checked="${i===4}" aria-label="${n}" data-k="${k}" data-n="${n}" style="--c:${c}"></button>`).join('')}</div>
   </figure>
-  ${story('Most people never move their portable speaker. It sits in one room, and listening stays a solo thing.','The triangle on the Sonos Roam 2, the wings on a TIE Fighter, and DJ stems, where you can pull the bass or vocals out of a track on their own.','A speaker built to be shared. It splits into modules, so part of the music can come with you into the next room.')}
+  <section class="block">${head('How it works','Two speakers, <span class="serif">one track</span>')}
+    <div class="pains three">
+      ${pain(ICONS.snap,'Connect','Snap side to side','Put your Sonic Snap next to a friend\'s and magnets link them together.')}
+      ${pain(ICONS.power,'Lead','The one that\'s on takes control','While they\'re linked, every speaker plays whatever the controlling one is playing.')}
+      ${pain(ICONS.stems,'Mix','Stem controls on every unit','Each speaker has its own stem controls, so you can pull out the bass, vocals, drums or melody.')}
+    </div>
+    <p class="turn"><span class="mono">Inspired by</span>The wings on a TIE Fighter, the triangle on the Sonos Roam 2, and DJ stems.</p>
+  </section>
   ${wall('Triangles, wings, <span class="serif">stems</span>',[['ss-sk1','Sketch',4,'0px','-3deg',1.53,1],['ss-sk2','Sketch',4,'50px','2deg',1.53,1],['ss-sk5','Sketch',4,'10px','-2deg',1.69,1],
     ['ss-sk3','Sketch',6,'0px','2deg',2.11,1],['ss-sk6','Sketch',6,'40px','-3deg',1.86,1],
     ['ss-pic1','Sketch',4,'0px','3deg',1.65,1],['ss-sk4','Sketch',4,'50px','-2deg',1.94,1],['ss-sk7','Sketch',4,'0px','2deg',1.55,1],
     ['ss-drawing','Technical drawing',6,'0px','-2deg',1.4,1],['ss-buttons','Buttons',6,'40px','2deg',1.84,1]])}
-  <section class="block">${head('Made','Snap apart, <span class="serif">take one with you</span>')}
+  <section class="block">${head('Made','Snap together, <span class="serif">play as one</span>')}
     ${g(2,1.25,[['ss-render-3','Two speakers, stacked vertically'],['ss-render-5','Two speakers, connected']])}
     ${g(3,1,[['ss-iso-galablue','Gala blue'],['ss-iso-white','White'],['ss-back-white','Back']],'trio')}
   </section>
